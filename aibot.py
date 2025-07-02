@@ -8,7 +8,8 @@ def aiden():
     
     aikey = os.environ.get('ai_key')
     token = os.environ.get('DISCORD_TOKEN')
-    print(f"Discord Token: {token}")  # Remove after testing!
+    print(f"DISCORD TOKEN STARTS WITH: {token[:10]}")  # DO NOT print full token
+
 
     
     if not aikey:
