@@ -1,28 +1,27 @@
+import os
 import discord
 from discord.ext import commands
 from discord import app_commands
-import os
 from openai import OpenAI
 
-# Load API keys
-aikey = os.environ.get('AI_KEY')
-if not aikey:
-    raise ValueError("AI_KEY environment variable not set")
-
-TOKEN = os.environ.get('DISCORD_TOKEN')
-if not TOKEN:
-    raise ValueError("TOKEN environment variable not set")
-
-
-# Initialize OpenAI client
-client = OpenAI(api_key=aikey, base_url="https://api.deepseek.com")
-
 def aiden():
+    # Load environment variables here, when function is called
+    aikey = os.environ.get('AI_KEY')
+    if not aikey:
+        raise ValueError("AI_KEY environment variable not set")
+
+    TOKEN = os.environ.get('DISCORD_TOKEN')
+    if not TOKEN:
+        raise ValueError("DISCORD_TOKEN environment variable not set")
+
+    # Initialize OpenAI client
+    client = OpenAI(api_key=aikey, base_url="https://api.deepseek.com")
+
     # Enable message content intent
     intents = discord.Intents.default()
     intents.message_content = True
 
-    # Initialize bot without command prefix (using slash commands only)
+    # Initialize bot without command prefix (slash commands only)
     bot = commands.Bot(command_prefix=None, intents=intents)
 
     @bot.event
