@@ -82,7 +82,7 @@ async def aiden_slash(interaction: discord.Interaction, user_message: str):
                         "You must answer the message in the same message not in more than one message."
                     )
                 },
-                {"role": "user", "content": user_message},
+                {"role": "boss/friend from botsec", "content": user_message},
             ],
             stream=False
         )
