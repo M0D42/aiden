@@ -6,7 +6,7 @@ from openai import OpenAI
 
 def aiden():
     
-    aikey = os.environ.get('AI_KEY')
+    aikey = os.environ.get('ai_key')
     token = os.environ.get('DISCORD_TOKEN')
     
     if not aikey:
