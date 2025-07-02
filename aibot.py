@@ -8,6 +8,8 @@ def aiden():
     
     aikey = os.environ.get('ai_key')
     token = os.environ.get('DISCORD_TOKEN')
+    print(f"Discord Token: {token}")  # Remove after testing!
+
     
     if not aikey:
         raise ValueError("AI_KEY environment variable not set")
