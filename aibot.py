@@ -5,14 +5,15 @@ from discord import app_commands
 from openai import OpenAI
 
 def aiden():
-    # Load environment variables here, when function is called
-    aikey = os.environ.get('AI_KEY')
-    if not aikey:
-        raise ValueError("AI_KEY environment variable not set")
 
-    TOKEN = os.environ.get('DISCORD_TOKEN')
-    if not TOKEN:
-        raise ValueError("DISCORD_TOKEN environment variable not set")
+aikey = os.environ.get('AI_KEY')
+token = os.environ.get('DISCORD_TOKEN')
+
+if not aikey:
+    raise ValueError("AI_KEY environment variable not set")
+if not token:
+    raise ValueError("DISCORD_TOKEN environment variable not set")
+
 
     # Initialize OpenAI client
     client = OpenAI(api_key=aikey, base_url="https://api.deepseek.com")
