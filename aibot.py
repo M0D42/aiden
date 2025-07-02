@@ -5,8 +5,8 @@ import os
 from openai import OpenAI
 
 # Load API keys
-aikey = os.getenv("ai_key")
-TOKEN = os.getenv("DISCORD_TOKEN")
+aikey = ai_key
+TOKEN = DISCORD_TOKEN
 
 # Initialize OpenAI client
 client = OpenAI(api_key=aikey, base_url="https://api.deepseek.com")
