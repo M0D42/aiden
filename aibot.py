@@ -84,4 +84,4 @@ def aiden():
             print(f"Aiden error: {e}")
             await interaction.followup.send("❌ Aiden had a meltdown (API error). Try again later.", ephemeral=True)
 
-    bot.run(TOKEN)
+    bot.run(token)
