@@ -2,22 +2,24 @@ import os
 import discord
 from discord.ext import commands
 from discord import app_commands
+from flask import Flask, request  # Import Flask
 from openai import OpenAI
-from flask import Flask
+import threading  # To run Flask alongside the bot
 
-# Optional HTTP server for Render health checks
-web = Flask(__name__)
+# ✅ Rename this from `web = Flask(...)` to `app = Flask(...)`
+app = Flask(__name__)
 
-@web.route("/")
+# Optional: health check route for Render or uptime bots
+@app.route("/", methods=["GET"])
 def home():
-    return "Bot is alive!", 200
+    return "Aiden is alive!", 200
+
 
 def aiden():
-    # Load environment variables
     aikey = os.environ.get('ai_key')
     token = os.environ.get('DISCORD_TOKEN')
 
-    print(f"DISCORD TOKEN STARTS WITH: {token[:10] if token else 'None'}")
+    print(f"DISCORD TOKEN STARTS WITH: {token[:10]}")  # Partial debug (never show full token)
 
     if not aikey:
         raise ValueError("AI_KEY environment variable not set")
@@ -31,7 +33,7 @@ def aiden():
     intents = discord.Intents.default()
     intents.message_content = True
 
-    # Initialize bot
+    # Initialize bot (slash commands only)
     bot = commands.Bot(command_prefix=None, intents=intents)
 
     @bot.event
@@ -52,18 +54,15 @@ def aiden():
             await message.channel.send('yes sir')
         await bot.process_commands(message)
 
-    # /test command
     @bot.tree.command(name="test", description="Test slash command")
     async def test_slash(interaction: discord.Interaction):
         await interaction.response.send_message("Slash command working!")
 
-    # /ping command
     @bot.tree.command(name="ping", description="Check bot latency")
     async def ping_slash(interaction: discord.Interaction):
         latency = round(bot.latency * 1000)
         await interaction.response.send_message(f"Pong! Latency: {latency}ms")
 
-    # /aiden command
     @bot.tree.command(name="aiden", description="Talk to A.I.D.E.N, your personal assistant")
     @app_commands.describe(user_message="What you want to say to A.I.D.E.N")
     async def aiden_slash(interaction: discord.Interaction, user_message: str):
@@ -78,31 +77,25 @@ def aiden():
                             "You are an assistant named A.I.D.E.N., which stands for Artificial Intelligence Designed for Efficient Navigation. "
                             "You help with any task. You have a rough exterior and a kind heart. Before becoming an assistant, you were in a bike gang "
                             "and lost your leg in a shootout. Act like Wrench from Watch Dogs 2. No code in your responses or you die. "
-                            "You must answer the message in the same message not in more than one message."
+                            "You must answer the message in the same message, not more than one."
                         )
                     },
                     {"role": "user", "content": user_message},
                 ],
                 stream=False
             )
-            msg = response.choices[0].message.content if response.choices else None
-            await interaction.followup.send(msg or "⚠️ Aiden had nothing to say.")
+            if response.choices and response.choices[0].message.content:
+                await interaction.followup.send(response.choices[0].message.content)
+            else:
+                await interaction.followup.send("⚠️ Aiden had nothing to say.")
         except Exception as e:
-            print(f"❌ Aiden error: {e}")
+            print(f"Aiden error: {e}")
             await interaction.followup.send("❌ Aiden had a meltdown (API error). Try again later.", ephemeral=True)
 
-    # Start the bot
-    try:
-        bot.run(token)
-    except Exception as e:
-        print(f"❌ Bot failed to run: {e}")
+    bot.run(token)
 
-# Entry point
+# ✅ Launch bot in a separate thread so Flask server can also run
 if __name__ == "__main__":
-    import threading
-
-    # Run Flask server on a thread (needed for Render's HTTP check)
-    threading.Thread(target=lambda: web.run(host="0.0.0.0", port=10000)).start()
-
-    # Start bot
-    aiden()
+    bot_thread = threading.Thread(target=aiden)
+    bot_thread.start()
+    app.run(host="0.0.0.0", port=10000)  # Keep Flask alive for health checks
