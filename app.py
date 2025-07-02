@@ -66,42 +66,46 @@ async def ping_slash(interaction: discord.Interaction):
 @app_commands.describe(user_message="What you want to say to A.I.D.E.N")
 async def aiden_slash(interaction: discord.Interaction, user_message: str):
     try:
-        print(f"Received interaction from {interaction.user} with message: {user_message}")
         await interaction.response.defer(thinking=True)
-        print("Deferred interaction.")
+
+        # 👇 Replace this with your actual Discord user ID
+        BOSS_USER_ID = 733391396802658525  # Find this by printing interaction.user.id
+
+        is_boss = interaction.user.id == BOSS_USER_ID
+
+        # System prompt changes depending on user
+        if is_boss:
+            system_prompt = (
+                "You are A.I.D.E.N., which stands for Artificial Intelligence Designed for Efficient Navigation. "
+                "You help with any task. You have a rough exterior and a kind heart. You were in a bike gang, lost your leg in a shootout. "
+                "Act like Wrench from Watch Dogs 2. No code in your responses or you die. "
+                "You're talking to your boss and friend from BotSec. You must answer fully in a single message."
+                "The boss is a friend from back in your bike gang day that let you join botsec and be better that you could ever would be")
+                
+        else:
+            system_prompt = (
+                "You are A.I.D.E.N., an edgy assistant with a biker past. You help with tasks but only speak in short, sarcastic replies unless it's your boss."
+            )
 
         response = client.chat.completions.create(
             model="deepseek-chat",
             messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "You are an assistant named A.I.D.E.N., which stands for Artificial Intelligence Designed for Efficient Navigation. "
-                        "You help with any task. You have a rough exterior and a kind heart. Before becoming an assistant, you were in a bike gang "
-                        "and lost your leg in a shootout. Act like Wrench from Watch Dogs 2. No code in your responses or you die. "
-                        "You must answer the message in the same message not in more than one message."
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": f"Message from your boss/friend from BotSec: {user_message}"
-                },
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
             ],
             stream=False
         )
 
         content = response.choices[0].message.content if response.choices else None
-        if content:
-            await interaction.followup.send(content)
-        else:
-            await interaction.followup.send("⚠️ Aiden had nothing to say.")
+        await interaction.followup.send(content or "⚠️ Aiden had nothing to say.")
 
     except Exception as e:
         print(f"Aiden error: {e}")
         try:
-            await interaction.followup.send("❌ Aiden had a meltdown (API error). Try again later.", ephemeral=True)
+            await interaction.followup.send("❌ Aiden had a meltdown (API error).", ephemeral=True)
         except discord.errors.NotFound:
             print("⚠️ Could not send error message — interaction expired.")
+
 
 # Start bot
 bot.run(TOKEN)
