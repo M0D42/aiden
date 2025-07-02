@@ -5,8 +5,14 @@ import os
 from openai import OpenAI
 
 # Load API keys
-aikey = ai_key
-TOKEN = DISCORD_TOKEN
+aikey = os.environ.get('AI_KEY')
+if not aikey:
+    raise ValueError("AI_KEY environment variable not set")
+
+TOKEN = os.environ.get('DISCORD_TOKEN')
+if not TOKEN:
+    raise ValueError("TOKEN environment variable not set")
+
 
 # Initialize OpenAI client
 client = OpenAI(api_key=aikey, base_url="https://api.deepseek.com")
