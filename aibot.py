@@ -5,7 +5,7 @@ import os
 from openai import OpenAI
 
 # Load API keys
-aikey = os.getenv("ai-key")
+aikey = os.getenv("ai_key")
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 # Initialize OpenAI client
