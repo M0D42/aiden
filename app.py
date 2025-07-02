@@ -65,9 +65,11 @@ async def ping_slash(interaction: discord.Interaction):
 @bot.tree.command(name="aiden", description="Talk to A.I.D.E.N, your personal assistant")
 @app_commands.describe(user_message="What you want to say to A.I.D.E.N")
 async def aiden_slash(interaction: discord.Interaction, user_message: str):
-    await interaction.response.defer(thinking=True)
-
     try:
+        print(f"Received interaction from {interaction.user} with message: {user_message}")
+        await interaction.response.defer(thinking=True)  # Defer immediately
+        print("Deferred interaction.")
+
         response = client.chat.completions.create(
             model="deepseek-chat",
             messages=[
@@ -93,7 +95,10 @@ async def aiden_slash(interaction: discord.Interaction, user_message: str):
 
     except Exception as e:
         print(f"Aiden error: {e}")
-        await interaction.followup.send("❌ Aiden had a meltdown (API error). Try again later.", ephemeral=True)
+        try:
+            await interaction.followup.send("❌ Aiden had a meltdown (API error). Try again later.", ephemeral=True)
+        except discord.errors.NotFound:
+            print("⚠️ Could not send error message — interaction expired.")
 
 # Start bot
 bot.run(TOKEN)
