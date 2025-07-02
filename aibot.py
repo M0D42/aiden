@@ -3,7 +3,6 @@ from discord.ext import commands
 from discord import app_commands
 import os
 from openai import OpenAI
-from keepalive import keep_alive
 
 # Load API keys
 aikey = os.getenv("ai-key")
@@ -79,5 +78,4 @@ def aiden():
             print(f"Aiden error: {e}")
             await interaction.followup.send("❌ Aiden had a meltdown (API error). Try again later.", ephemeral=True)
 
-    keep_alive()
     bot.run(TOKEN)
