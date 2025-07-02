@@ -42,6 +42,7 @@ def aiden():
     intents.message_content = True
     print(f"[Discord] Intents set: message_content={intents.message_content}")
 
+    # Use command_prefix="!" or None depending on your needs
     bot = commands.Bot(command_prefix=None, intents=intents)
 
     @bot.event
@@ -96,9 +97,10 @@ def aiden():
                 ],
                 stream=False
             )
-            print(f"[OpenAI] Response received: {response.choices[0].message.content if response.choices else 'No content'}")
-            if response.choices and response.choices[0].message.content:
-                await interaction.followup.send(response.choices[0].message.content)
+            content = response.choices[0].message.content if response.choices else None
+            print(f"[OpenAI] Response received: {content}")
+            if content:
+                await interaction.followup.send(content)
             else:
                 await interaction.followup.send("⚠️ Aiden had nothing to say.")
         except Exception as e:
@@ -113,6 +115,6 @@ def aiden():
 
 if __name__ == "__main__":
     print("[Main] Starting bot thread and Flask app")
-    bot_thread = threading.Thread(target=aiden)
+    bot_thread = threading.Thread(target=aiden, daemon=True)
     bot_thread.start()
     app.run(host="0.0.0.0", port=10000)
