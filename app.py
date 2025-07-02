@@ -2,49 +2,54 @@ import os
 import discord
 from discord.ext import commands
 from discord import app_commands
-from flask import Flask, request  # Import Flask
+from flask import Flask
 from openai import OpenAI
-import threading  # To run Flask alongside the bot
+import threading
 
-# ✅ Rename this from `web = Flask(...)` to `app = Flask(...)`
 app = Flask(__name__)
 
-# Optional: health check route for Render or uptime bots
+# Global status tracking for the bot
+bot_ready = {"status": False, "name": "Unknown"}
+
 @app.route("/", methods=["GET"])
 def home():
-    return "Aiden is alive!", 200
-
+    status = "🟢 Online" if bot_ready["status"] else "🔴 Offline"
+    return f"Aiden Discord Bot Status: {status} (as {bot_ready['name']})", 200
 
 def aiden():
+    print("🔁 aiden() starting...")
+
     aikey = os.environ.get('ai_key')
     token = os.environ.get('DISCORD_TOKEN')
-
-    print(f"DISCORD TOKEN STARTS WITH: {token[:10]}")  # Partial debug (never show full token)
+    print(f"🔐 Token prefix: {token[:10] if token else 'None'}")
 
     if not aikey:
         raise ValueError("AI_KEY environment variable not set")
     if not token:
         raise ValueError("DISCORD_TOKEN environment variable not set")
 
-    # Initialize OpenAI client
     client = OpenAI(api_key=aikey, base_url="https://api.deepseek.com")
 
-    # Enable message content intent
     intents = discord.Intents.default()
     intents.message_content = True
-
-    # Initialize bot (slash commands only)
     bot = commands.Bot(command_prefix=None, intents=intents)
 
     @bot.event
     async def on_ready():
-        print(f'✅ Logged in as {bot.user}')
+        bot_ready["status"] = True
+        bot_ready["name"] = str(bot.user)
+        print(f"✅ Discord bot logged in as {bot.user}")
         await bot.change_presence(status=discord.Status.online)
         try:
             synced = await bot.tree.sync()
-            print(f"✅ Synced {len(synced)} command(s)")
+            print(f"✅ Synced {len(synced)} slash command(s)")
         except Exception as e:
             print(f"❌ Failed to sync commands: {e}")
+
+    @bot.event
+    async def on_disconnect():
+        bot_ready["status"] = False
+        print("⚠️ Bot disconnected")
 
     @bot.event
     async def on_message(message):
@@ -92,10 +97,13 @@ def aiden():
             print(f"Aiden error: {e}")
             await interaction.followup.send("❌ Aiden had a meltdown (API error). Try again later.", ephemeral=True)
 
-    bot.run(token)
+    try:
+        bot.run(token)
+    except Exception as e:
+        bot_ready["status"] = False
+        print(f"❌ Bot.run error: {e}")
 
-# ✅ Launch bot in a separate thread so Flask server can also run
 if __name__ == "__main__":
-    bot_thread = threading.Thread(target=aiden)
-    bot_thread.start()
-    app.run(host="0.0.0.0", port=10000)  # Keep Flask alive for health checks
+    print("🚀 Starting bot thread...")
+    threading.Thread(target=aiden, daemon=True).start()
+    app.run(host="0.0.0.0", port=10000)
