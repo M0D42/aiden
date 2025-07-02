@@ -4,8 +4,9 @@ from discord import app_commands
 import os
 from openai import OpenAI
 
-# Load API keys
-aikey = os.getenv("ai-key")  # or "AI_KEY"
+# Load API keysaikey = os.getenv("AI_KEY")
+aikey = os.getenv("ai_key")
+  # or "AI_KEY"
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 if not aikey or not TOKEN:
