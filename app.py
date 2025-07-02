@@ -67,7 +67,7 @@ async def ping_slash(interaction: discord.Interaction):
 async def aiden_slash(interaction: discord.Interaction, user_message: str):
     try:
         print(f"Received interaction from {interaction.user} with message: {user_message}")
-        await interaction.response.defer(thinking=True)  # Defer immediately
+        await interaction.response.defer(thinking=True)
         print("Deferred interaction.")
 
         response = client.chat.completions.create(
@@ -82,7 +82,10 @@ async def aiden_slash(interaction: discord.Interaction, user_message: str):
                         "You must answer the message in the same message not in more than one message."
                     )
                 },
-                {"role": "boss/friend from botsec", "content": user_message},
+                {
+                    "role": "user",
+                    "content": f"Message from your boss/friend from BotSec: {user_message}"
+                },
             ],
             stream=False
         )
