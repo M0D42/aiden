@@ -1,26 +1,22 @@
 import os
-import threading
 from flask import Flask
-from aibot import aiden  # your bot function
+from multiprocessing import Process
+from aibot import aiden  # your function
 
 app = Flask(__name__)
 
 @app.route('/')
-def hello_world():
-    return 'Im alive'
+def home():
+    return "I'm alive"
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
 
-    # Start Discord bot in a daemon thread so it won't block Flask shutdown
-    def start_bot():
-        try:
-            print("Starting Aiden bot thread...")
-            aiden()
-        except Exception as e:
-            print(f"Aiden bot error: {e}")
+    # Start Discord bot in separate process
+    bot_process = Process(target=aiden)
+    bot_process.start()
 
-    threading.Thread(target=start_bot, daemon=True).start()
+    # Run Flask webserver
+    app.run(host="0.0.0.0", port=port)
 
-    # Run Flask app listening on all interfaces on the assigned port
-    app.run(host='0.0.0.0', port=port)
+    bot_process.join()
