@@ -1,12 +1,25 @@
+from flask import Flask
+from threading import Thread
 import discord
 from discord.ext import commands
 from discord import app_commands
 import os
 from openai import OpenAI
 
-# Load API keysaikey = os.getenv("AI_KEY")
+# Web server for uptime
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "A.I.D.E.N. is alive and ready to ride! 🏍️"
+
+def run_webserver():
+    app.run(host='0.0.0.0', port=8080)
+
+Thread(target=run_webserver).start()
+
+# Load API keys
 aikey = os.getenv("ai_key")
-  # or "AI_KEY"
 TOKEN = os.getenv("DISCORD_TOKEN")
 
 if not aikey or not TOKEN:
@@ -20,7 +33,6 @@ client = OpenAI(api_key=aikey, base_url="https://api.deepseek.com")
 intents = discord.Intents.default()
 intents.message_content = True
 
-# Initialize bot without command prefix (using slash commands only)
 bot = commands.Bot(command_prefix=None, intents=intents)
 
 @bot.event
@@ -41,18 +53,15 @@ async def on_message(message):
         await message.channel.send('yes sir')
     await bot.process_commands(message)
 
-# Test slash command
 @bot.tree.command(name="test", description="Test slash command")
 async def test_slash(interaction: discord.Interaction):
     await interaction.response.send_message("Slash command working!")
 
-# Ping slash command
 @bot.tree.command(name="ping", description="Check bot latency")
 async def ping_slash(interaction: discord.Interaction):
     latency = round(bot.latency * 1000)
     await interaction.response.send_message(f"Pong! Latency: {latency}ms")
 
-# A.I.D.E.N slash command
 @bot.tree.command(name="aiden", description="Talk to A.I.D.E.N, your personal assistant")
 @app_commands.describe(user_message="What you want to say to A.I.D.E.N")
 async def aiden_slash(interaction: discord.Interaction, user_message: str):
@@ -86,5 +95,5 @@ async def aiden_slash(interaction: discord.Interaction, user_message: str):
         print(f"Aiden error: {e}")
         await interaction.followup.send("❌ Aiden had a meltdown (API error). Try again later.", ephemeral=True)
 
-# Run the bot
+# Start bot
 bot.run(TOKEN)
